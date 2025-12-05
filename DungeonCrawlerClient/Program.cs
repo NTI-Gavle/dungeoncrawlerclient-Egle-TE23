@@ -15,6 +15,7 @@ namespace DungeonCrawlerClient
             try
             {
                 tcpClient.Connect(iPEndPoint);
+                Console.WriteLine("connected to server");
             }
             catch (Exception e)
             {
