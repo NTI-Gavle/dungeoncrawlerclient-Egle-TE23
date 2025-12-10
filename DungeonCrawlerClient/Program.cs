@@ -9,32 +9,61 @@ namespace DungeonCrawlerClient
         static void Main(string[] args)
         {
             IPAddress iPAddress = IPAddress.Parse("127.0.0.1");
-            IPEndPoint iPEndPoint = new IPEndPoint(iPAddress, 54321);
+            IPEndPoint iPEndPoint = new IPEndPoint(iPAddress, 57575);
             TcpClient tcpClient = new TcpClient();
 
-            try
+            while (!tcpClient.Connected)
             {
-                tcpClient.Connect(iPEndPoint);
-                Console.WriteLine("connected to server");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Could not connect to server.");
+                try
+                {
+                    tcpClient.Connect(iPEndPoint);
+                    Console.WriteLine("connected to server");
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Could not connect to server.\nPress ENTER to try again");
+                    Console.ReadKey();
+                }
             }
 
             while (tcpClient.Connected)
             {
-                byte[] bytes = new byte[1024];
-                tcpClient.GetStream().Read(bytes, 0, bytes.Length);
-                string message = Encoding.UTF8.GetString(bytes);
-                Console.Write(message);
-
-                string command = Console.ReadLine();
-                byte[] writeBytes = Encoding.UTF8.GetBytes(command);
-                tcpClient.GetStream().Write(writeBytes, 0, writeBytes.Length);
-
+                try
+                {
+                    Task.Run(() =>
+                    {
+                        while (true)
+                        {
+                            byte[] readBytes = new byte[1024];
+                            tcpClient.GetStream().Read(readBytes, 0, readBytes.Length);
+                            string message = Encoding.UTF8.GetString(readBytes);
+                            Console.WriteLine(message);
+                        }
+                    });
+                    string command = Console.ReadLine();
+                    byte[] writeBytes = Encoding.UTF8.GetBytes(command);
+                    tcpClient.GetStream().Write(writeBytes, 0, writeBytes.Length);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("Disconnected from server\nPress ENTER to try to reconnect");
+                    Console.ReadKey();
+                    while (!tcpClient.Connected)
+                    {
+                        try
+                        {
+                            tcpClient = new TcpClient();
+                            tcpClient.Connect(iPEndPoint);
+                            Console.WriteLine("connected to server");
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("Could not connect to server.\nPress ENTER to try again");
+                            Console.ReadKey();
+                        }
+                    }
+                }
             }
-
             tcpClient.Close();
 
         }
