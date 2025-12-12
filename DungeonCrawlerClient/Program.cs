@@ -44,7 +44,7 @@ namespace DungeonCrawlerClient
                     byte[] writeBytes = Encoding.UTF8.GetBytes(command);
                     tcpClient.GetStream().Write(writeBytes, 0, writeBytes.Length);
                 }
-                catch (Exception)
+                catch (Exception) 
                 {
                     Console.WriteLine("Disconnected from server\nPress ENTER to try to reconnect");
                     Console.ReadKey();
