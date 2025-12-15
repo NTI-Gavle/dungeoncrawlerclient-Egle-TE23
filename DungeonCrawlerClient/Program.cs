@@ -11,6 +11,7 @@ namespace DungeonCrawlerClient
             IPAddress iPAddress = IPAddress.Parse("127.0.0.1");
             IPEndPoint iPEndPoint = new IPEndPoint(iPAddress, 57575);
             TcpClient tcpClient = new TcpClient();
+            string message = "";
 
             while (!tcpClient.Connected)
             {
@@ -32,19 +33,32 @@ namespace DungeonCrawlerClient
                 {
                     Task.Run(() =>
                     {
-                        while (true)
+                        try
                         {
-                            byte[] readBytes = new byte[1024];
-                            tcpClient.GetStream().Read(readBytes, 0, readBytes.Length);
-                            string message = Encoding.UTF8.GetString(readBytes);
-                            Console.WriteLine(message);
+                            while (true)
+                            {
+                                byte[] readBytes = new byte[1024];
+                                tcpClient.GetStream().Read(readBytes, 0, readBytes.Length);
+                                message = Encoding.UTF8.GetString(readBytes);
+                                Console.WriteLine(message);
+                                if (message.Contains("exiting game"))
+                                {
+                                    tcpClient.Close();
+                                    Environment.Exit(0);
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            tcpClient.Close();
+                            Environment.Exit(0);
                         }
                     });
                     string command = Console.ReadLine();
                     byte[] writeBytes = Encoding.UTF8.GetBytes(command);
                     tcpClient.GetStream().Write(writeBytes, 0, writeBytes.Length);
                 }
-                catch (Exception) 
+                catch (Exception)
                 {
                     Console.WriteLine("Disconnected from server\nPress ENTER to try to reconnect");
                     Console.ReadKey();
@@ -65,7 +79,7 @@ namespace DungeonCrawlerClient
                 }
             }
             tcpClient.Close();
-
+            Environment.Exit(0);
         }
     }
 }
