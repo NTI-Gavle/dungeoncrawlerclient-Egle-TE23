@@ -27,13 +27,14 @@ namespace DungeonCrawlerClient
                 }
             }
 
+            bool taskRunning = false;
             while (tcpClient.Connected)
             {
                 try
                 {
-                    Task.Run(() =>
+                    if (!taskRunning)
                     {
-                        try
+                        Task.Run(() =>
                         {
                             while (true)
                             {
@@ -47,13 +48,9 @@ namespace DungeonCrawlerClient
                                     Environment.Exit(0);
                                 }
                             }
-                        }
-                        catch
-                        {
-                            tcpClient.Close();
-                            Environment.Exit(0);
-                        }
-                    });
+                        });
+                        taskRunning = true;
+                    }
                     string command = Console.ReadLine();
                     byte[] writeBytes = Encoding.UTF8.GetBytes(command);
                     tcpClient.GetStream().Write(writeBytes, 0, writeBytes.Length);
@@ -78,8 +75,6 @@ namespace DungeonCrawlerClient
                     }
                 }
             }
-            tcpClient.Close();
-            Environment.Exit(0);
         }
     }
 }
