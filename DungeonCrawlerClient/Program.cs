@@ -38,14 +38,36 @@ namespace DungeonCrawlerClient
                         {
                             while (true)
                             {
-                                byte[] readBytes = new byte[1024];
-                                tcpClient.GetStream().Read(readBytes, 0, readBytes.Length);
-                                message = Encoding.UTF8.GetString(readBytes);
-                                Console.WriteLine(message);
                                 if (message.Contains("exiting game"))
                                 {
                                     tcpClient.Close();
                                     Environment.Exit(0);
+                                }
+                                try
+                                {
+                                    byte[] readBytes = new byte[1024];
+                                    tcpClient.GetStream().Read(readBytes, 0, readBytes.Length);
+                                    message = Encoding.UTF8.GetString(readBytes);
+                                    Console.WriteLine(message);
+                                }
+                                catch (Exception)
+                                {
+                                    Console.WriteLine("Disconnected from server\nPress ENTER to try to reconnect");
+                                    Console.ReadKey();
+                                    while (!tcpClient.Connected)
+                                    {
+                                        try
+                                        {
+                                            tcpClient = new TcpClient();
+                                            tcpClient.Connect(iPEndPoint);
+                                            Console.WriteLine("connected to server");
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Console.WriteLine("Could not connect to server.\nPress ENTER to try again");
+                                            Console.ReadKey();
+                                        }
+                                    }
                                 }
                             }
                         });
